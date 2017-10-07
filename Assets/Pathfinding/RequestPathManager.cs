@@ -21,6 +21,8 @@ public class RequestPathManager : MonoBehaviour {
 
     public static void RequestPath(Vector3 pathStart, Vector3 pathEnd, Action<Vector3[], bool> callback){
         PathRequest newRequest = new PathRequest(pathStart, pathEnd, callback);
+        print(instance.pathRequestQueue.Count);
+        Debug.Log("Is processing path: "+instance.isProcessingPath.ToString());
         instance.pathRequestQueue.Enqueue(newRequest);
         instance.TryProcessNext();
     }
@@ -35,8 +37,9 @@ public class RequestPathManager : MonoBehaviour {
     }
 
     public void FinishedProcessingPath(Vector3[] path, bool success){
-        currentPathRequest.callback(path, success);
+        Debug.Log("PATH FOUND FINISHED");
         isProcessingPath = false;
+        currentPathRequest.callback(path, success);
         this.TryProcessNext();
     }
 

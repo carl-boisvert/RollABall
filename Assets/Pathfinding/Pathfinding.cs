@@ -5,8 +5,7 @@ using System.Diagnostics;
 using System;
 
 public class Pathfinding : MonoBehaviour {
-
-
+    
     RequestPathManager requestManager;
     Grid grid;
 

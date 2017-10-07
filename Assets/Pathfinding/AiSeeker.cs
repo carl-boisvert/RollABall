@@ -12,16 +12,11 @@ public class AiSeeker : MonoBehaviour
     int targetIndex;
     bool dropBeans = true;
 
+
     private void Start()
     {
         StartCoroutine("DropMagicBeans");
-    }
-
-
-
-    void Update()
-    {
-        RequestPathManager.RequestPath(transform.position, target.position, this.OnPathFound);
+        StartCoroutine("UpdateTarget");
         if(GetComponent<Animator>()){
             this.animator = GetComponent<Animator>();
         }
@@ -32,6 +27,7 @@ public class AiSeeker : MonoBehaviour
         if (Input.GetKeyDown("r"))
         {
             this.transform.position = new Vector3(7, 0, 18);
+            targetIndex = 0;
             StopCoroutine("FollowPath");
             RequestPathManager.RequestPath(transform.position, target.position, this.OnPathFound);
         }
@@ -43,7 +39,7 @@ public class AiSeeker : MonoBehaviour
             StopCoroutine("FollowPath");
             if(this.animator){
                 this.animator.SetBool("isMoving",true);
-                this.animator.Play("moving");
+                this.animator.Play("Walk");
             }
             StartCoroutine("FollowPath");
         }
@@ -51,11 +47,13 @@ public class AiSeeker : MonoBehaviour
 
     IEnumerator FollowPath(){
         Vector3 currentWaypoint = path[0];
+        int totalWaypoints = path.Length;
 
         while(true){
             if(transform.position == currentWaypoint){
                 targetIndex++;
                 if(targetIndex >= path.Length){
+                    targetIndex = 0;
                     yield break;
                 }
                 currentWaypoint = path[targetIndex];
@@ -63,6 +61,14 @@ public class AiSeeker : MonoBehaviour
 
             transform.position = Vector3.MoveTowards(transform.position, currentWaypoint, speed*Time.deltaTime);
             transform.rotation = Quaternion.LookRotation(Vector3.RotateTowards(transform.forward, (transform.position-currentWaypoint)*-1, speed * Time.deltaTime, 0.0F));
+            if(targetIndex == totalWaypoints-1){
+				if (this.animator)
+				{
+					this.animator.SetBool("isMoving", false);
+					this.animator.Play("Idle");
+				}
+            }
+
             yield return null;
         }
     }
@@ -77,19 +83,28 @@ public class AiSeeker : MonoBehaviour
         yield return null;
 	}
 
-    public void OnDrawGizmos()
-    {
-        if(path != null){
-            for (int i = targetIndex; i < path.Length; i++){
-                Gizmos.color = Color.blue;
-                Gizmos.DrawCube(path[i], Vector3.one);
-
-                if(i == targetIndex){
-                    Gizmos.DrawLine(transform.position, path[i]);
-                } else{
-                    Gizmos.DrawLine(path[i-1], path[i]);
-                }
-            }
-        }
+    IEnumerator UpdateTarget(){
+        while (this.target)
+		{
+			RequestPathManager.RequestPath(transform.position, target.position, this.OnPathFound);
+			yield return new WaitForSeconds(1);
+		}
+		yield return null;
     }
+
+    //public void OnDrawGizmos()
+    //{
+    //    if(path != null){
+    //        for (int i = targetIndex; i < path.Length; i++){
+    //            Gizmos.color = Color.blue;
+    //            Gizmos.DrawCube(path[i], Vector3.one);
+
+    //            if(i == targetIndex){
+    //                Gizmos.DrawLine(transform.position, path[i]);
+    //            } else{
+    //                Gizmos.DrawLine(path[i-1], path[i]);
+    //            }
+    //        }
+    //    }
+    //}
 }
